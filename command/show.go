@@ -16,47 +16,39 @@ func NewShowCommand() *cobra.Command {
 		Long:  "",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var issues []*core.Issue
 			switch {
 			case len(args) == 0:
-				list, err := core.ListIssues(cmd.Context())
+				iter, err := core.ListIssues(cmd.Context())
 				if err != nil {
 					return err
 				}
-				issues = append(issues, list...)
+				if !iter.HasNext() {
+					return nil
+				}
+				pr, pw := io.Pipe()
+				go func() {
+					// write issues to the pipe
+					err := iter.ForEach(cmd.Context(), func(i *core.Issue) error {
+						_, err := fmt.Fprintln(pw, i.String())
+						return err
+					})
+					pw.CloseWithError(err)
+				}()
+				// pipe output to pager program
+				ok, err := git.Pager(cmd.Context(), pr)
+				if err != nil || ok {
+					return err
+				}
+				// print to stdout if no pager available
+				_, err = io.Copy(cmd.OutOrStdout(), pr)
+				return err
 
 			default:
 				issue, err := core.GetIssue(cmd.Context(), args[0])
 				if err != nil {
 					return err
 				}
-				issues = append(issues, issue)
-			}
-
-			if len(issues) == 0 {
-				return nil
-			}
-
-			pr, pw := io.Pipe()
-			go func() {
-				for _, i := range issues {
-					fmt.Fprintln(pw, i.String())
-				}
-				pw.Close()
-			}()
-
-			switch {
-			case len(issues) > 3:
-				// pipe output to pager program
-				ok, err := git.Pager(cmd.Context(), pr)
-				if err != nil || ok {
-					return err
-				}
-				fallthrough
-
-			default:
-				// print issues to stdout
-				_, err := io.Copy(cmd.OutOrStdout(), pr)
+				_, err = fmt.Fprint(cmd.OutOrStdout(), issue.String())
 				return err
 			}
 		},

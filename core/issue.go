@@ -1,7 +1,9 @@
 package core
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -95,4 +97,36 @@ func (i *Issue) String() string {
 	headers = append(headers, fmt.Sprintf("Status: %s", i.Status))
 	oneline := strings.SplitN(i.Message, "\n", 2)[0]
 	return fmt.Sprintf("%s\n\n    %s\n", strings.Join(headers, "\n"), oneline)
+}
+
+type IssueIterator struct {
+	hashes []string
+}
+
+func (i *IssueIterator) HasNext() bool {
+	return len(i.hashes) > 0
+}
+
+func (i *IssueIterator) Next(ctx context.Context) (*Issue, error) {
+	if len(i.hashes) == 0 {
+		return nil, io.EOF
+	}
+	issue, err := GetIssue(ctx, i.hashes[0])
+	if err != nil {
+		return nil, err
+	}
+	i.hashes = i.hashes[1:]
+	return issue, nil
+}
+
+func (i *IssueIterator) ForEach(ctx context.Context, fn func(*Issue) error) error {
+	for {
+		issue, err := i.Next(ctx)
+		if err != nil {
+			return err
+		}
+		if err := fn(issue); err != nil {
+			return err
+		}
+	}
 }
