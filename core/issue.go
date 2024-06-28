@@ -88,7 +88,11 @@ func (i *Issue) Encode() string {
 
 // String returns the issue encoded as a human friendly string.
 func (i *Issue) String() string {
+	var headers []string
+	headers = append(headers, fmt.Sprintf("issue %s", i.Hash))
+	headers = append(headers, fmt.Sprintf("Author: %s", i.Author.String()))
+	headers = append(headers, fmt.Sprintf("Time:   %s", i.Author.When.Format("Mon Jan 02 15:04:05 2006")))
+	headers = append(headers, fmt.Sprintf("Status: %s", i.Status))
 	oneline := strings.SplitN(i.Message, "\n", 2)[0]
-	date := i.Author.When.Format("Mon Jan 02 15:04:05 2006")
-	return fmt.Sprintf("issue %s\nAuthor: %s\nTime:   %s\nStatus: %s\n\n    %s\n", i.Hash, i.Author.String(), date, i.Status, oneline)
+	return fmt.Sprintf("%s\n\n    %s\n", strings.Join(headers, "\n"), oneline)
 }

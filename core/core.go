@@ -87,9 +87,9 @@ func ListIssues(ctx context.Context) ([]*Issue, error) {
 	for _, v := range bytes.Split(notes, []byte("\n")) {
 		parts := bytes.Fields(v)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid note list format")
+			return nil, err
 		}
-		issue, err := GetIssue(ctx, string(parts[0]))
+		issue, err := GetIssue(ctx, string(parts[1]))
 		if err != nil {
 			return nil, err
 		}
