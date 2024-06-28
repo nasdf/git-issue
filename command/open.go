@@ -61,7 +61,7 @@ func NewOpenCommand() *cobra.Command {
 				}
 				issue.Message = string(clean)
 			}
-			err = core.CreateIssueNote(cmd.Context(), issue)
+			err = core.AddIssueNote(cmd.Context(), issue)
 			if err != nil {
 				return err
 			}

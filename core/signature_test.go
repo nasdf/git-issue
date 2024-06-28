@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUserUnmarshal(t *testing.T) {
+func TestDecodeSignature(t *testing.T) {
 	expect := &Signature{
 		Name:  "Bob",
 		Email: "bob@test.com",

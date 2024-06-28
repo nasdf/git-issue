@@ -39,12 +39,12 @@ func DecodeSignature(text string) (*Signature, error) {
 	}, nil
 }
 
-// Encode returns the encoded signature header.
+// Encode returns the signature header encoding.
 func (s *Signature) Encode() string {
 	return fmt.Sprintf("%s <%s> %d %s", s.Name, s.Email, s.When.Unix(), s.When.Format("-0700"))
 }
 
-// String returns the signature encoded as a human friendly string.
+// String returns the signature human friendly encoding.
 func (s *Signature) String() string {
 	return fmt.Sprintf("%s <%s>", s.Name, s.Email)
 }

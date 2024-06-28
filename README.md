@@ -1,7 +1,5 @@
 # git-issue
 
-Git issue management.
-
 ```
 Open, close, and edit issues
 
@@ -13,6 +11,7 @@ Available Commands:
   help        Help about any command
   list        List issues
   open        Open a new issue
+  show        Show issue contents
 
 Flags:
   -h, --help   help for git-issue

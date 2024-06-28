@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIssueUnmarshalText(t *testing.T) {
+func TestDecodeIssue(t *testing.T) {
 	author, err := DecodeSignature("Bob <bob@test.com> 1719340759 -0700")
 	require.NoError(t, err)
 

@@ -33,10 +33,8 @@ func CreateIssue(ctx context.Context) (*Issue, error) {
 		Email: string(authorEmail),
 		When:  time.Now(),
 	}
-
-	// create an object to anchor the issue note to
-	blob := fmt.Sprintf("issue %s", author)
-	hash, err := git.Exec(ctx, bytes.NewBufferString(blob), "hash-object", "-w", "--stdin")
+	blob := bytes.NewBufferString(fmt.Sprintf("issue %s", author.Encode()))
+	hash, err := git.Exec(ctx, blob, "hash-object", "--stdin")
 	if err != nil {
 		return nil, err
 	}
@@ -47,11 +45,15 @@ func CreateIssue(ctx context.Context) (*Issue, error) {
 	}, nil
 }
 
-// CreateIssueNote creates a note that will contain the issue data.
-func CreateIssueNote(ctx context.Context, issue *Issue) error {
-	data := issue.Encode()
-	stdin := bytes.NewBufferString(data)
-	_, err := git.Exec(ctx, stdin, "notes", "--ref", issuesRef, "add", issue.Hash, "-F", "-")
+// AddIssueNote adds a note that will contain the issue data.
+func AddIssueNote(ctx context.Context, issue *Issue) error {
+	blob := bytes.NewBufferString(fmt.Sprintf("issue %s", issue.Author.Encode()))
+	hash, err := git.Exec(ctx, blob, "hash-object", "-w", "--stdin")
+	if err != nil {
+		return err
+	}
+	stdin := bytes.NewBufferString(issue.Encode())
+	_, err = git.Exec(ctx, stdin, "notes", "--ref", issuesRef, "add", string(hash), "-F", "-")
 	return err
 }
 
@@ -75,21 +77,14 @@ func EditIssueMessage(ctx context.Context, issue *Issue) ([]byte, error) {
 	return os.ReadFile(file)
 }
 
-func ListIssueNotes(ctx context.Context) ([][]byte, error) {
+// ListIssues returns a list containing all issues.
+func ListIssues(ctx context.Context) ([]*Issue, error) {
 	notes, err := git.Exec(ctx, nil, "notes", "--ref", issuesRef, "list")
 	if err != nil {
 		return nil, err
 	}
-	return bytes.Split(notes, []byte("\n")), nil
-}
-
-func ListIssues(ctx context.Context) ([]*Issue, error) {
-	notes, err := ListIssueNotes(ctx)
-	if err != nil {
-		return nil, err
-	}
 	var issues []*Issue
-	for _, v := range notes {
+	for _, v := range bytes.Split(notes, []byte("\n")) {
 		parts := bytes.Fields(v)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid note list format")
@@ -103,8 +98,9 @@ func ListIssues(ctx context.Context) ([]*Issue, error) {
 	return issues, nil
 }
 
+// GetIssue returns the issue anchored to the object with the given hash.
 func GetIssue(ctx context.Context, hash string) (*Issue, error) {
-	data, err := git.Exec(ctx, nil, "cat-file", "blob", hash)
+	data, err := git.Exec(ctx, nil, "notes", "--ref", issuesRef, "show", hash)
 	if err != nil {
 		return nil, err
 	}
