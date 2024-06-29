@@ -6,13 +6,11 @@ import (
 
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		SilenceErrors: true,
-		SilenceUsage:  true,
-		Use:           "git-issue",
-		Short:         "Open, close, and edit issues",
-		Long:          "",
+		Use:   "git-issue",
+		Short: "Create, edit, or list issues",
+		Long:  "",
 	}
-	cmd.AddCommand(NewOpenCommand())
+	cmd.AddCommand(NewCreateCommand())
 	cmd.AddCommand(NewShowCommand())
 	return cmd
 }

@@ -1,20 +1,15 @@
 # git-issue
 
+Git issue management. Read the (docs)[./docs/git-issue.md] for detailed usage info.
+
+## Install from source
+
 ```
-Open, close, and edit issues
+go install github.com/nasdf/git-issue@latest
+```
 
-Usage:
-  git-issue [command]
+## Generate docs
 
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  help        Help about any command
-  list        List issues
-  open        Open a new issue
-  show        Show issue contents
-
-Flags:
-  -h, --help   help for git-issue
-
-Use "git-issue [command] --help" for more information about a command.
+```
+go run -tags docs .
 ```

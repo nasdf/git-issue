@@ -15,7 +15,7 @@ func TestDecodeIssue(t *testing.T) {
 		Author:    *author,
 		Assignees: []string{"Alice <alice@test.com>"},
 		Labels:    []string{"bug", "feature"},
-		Status:    IssueStatusOpen,
+		Status:    "open",
 		Message:   "fix bug\n\nfix the bug in the code",
 	}
 

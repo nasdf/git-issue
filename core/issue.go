@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-const (
-	IssueStatusOpen   = "open"
-	IssueStatusClosed = "closed"
-)
-
 type Issue struct {
 	// Hash is the hash of the object the issue note is anchored to
 	Hash string
@@ -91,10 +86,15 @@ func (i *Issue) Encode() string {
 // String returns the issue encoded as a human friendly string.
 func (i *Issue) String() string {
 	var headers []string
-	headers = append(headers, fmt.Sprintf("issue %s", i.Hash))
-	headers = append(headers, fmt.Sprintf("Author: %s", i.Author.String()))
-	headers = append(headers, fmt.Sprintf("Time:   %s", i.Author.When.Format("Mon Jan 02 15:04:05 2006")))
-	headers = append(headers, fmt.Sprintf("Status: %s", i.Status))
+	headers = append(headers, fmt.Sprintf("issue %s", strings.Join(append([]string{i.Hash}, i.Labels...), " ")))
+	headers = append(headers, fmt.Sprintf("Author:   %s", i.Author.String()))
+	headers = append(headers, fmt.Sprintf("Time:     %s", i.Author.When.Format("Mon Jan 02 15:04:05 2006")))
+	headers = append(headers, fmt.Sprintf("Status:   %s", i.Status))
+
+	for _, a := range i.Assignees {
+		headers = append(headers, fmt.Sprintf("Assignee: %s", a))
+	}
+
 	oneline := strings.SplitN(i.Message, "\n", 2)[0]
 	return fmt.Sprintf("%s\n\n    %s\n", strings.Join(headers, "\n"), oneline)
 }

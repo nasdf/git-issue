@@ -13,17 +13,20 @@ import (
 	"github.com/nasdf/git-issue/git"
 )
 
-func NewOpenCommand() *cobra.Command {
+func NewCreateCommand() *cobra.Command {
 	var messageFlag []string
 	var fileFlag string
 	var stripSpaceFlag bool
 	var noStripSpaceFlag bool
+	var assignFlag []string
+	var labelFlag []string
+	var statusFlag string
 	cmd := &cobra.Command{
-		Use:   "open [--[no]-stripspace] [-F <file> | -m <msg>]",
-		Short: "Open a new issue",
+		Use:   "create [--[no]-stripspace] [-F <file> | -m <message>] [-l <label>] [-a <user>] [-s <status>]",
+		Short: "Create a new issue",
 		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			issue, err := core.CreateIssue(cmd.Context())
+			issue, err := core.CreateIssue(cmd.Context(), statusFlag, assignFlag, labelFlag)
 			if err != nil {
 				return err
 			}
@@ -73,5 +76,9 @@ func NewOpenCommand() *cobra.Command {
 	cmd.Flags().StringArrayVarP(&messageFlag, "message", "m", []string{}, "Use the given issue message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs. Lines starting with # and empty lines other than a single line between paragraphs will be stripped out. If you wish to keep them verbatim, use --no-stripspace.")
 	cmd.Flags().BoolVar(&noStripSpaceFlag, "no-stripspace", false, "")
 	cmd.Flags().BoolVar(&stripSpaceFlag, "stripspace", true, "Strip leading and trailing whitespace from the issue message. Also strip out empty lines other than a single line between paragraphs.")
+	cmd.Flags().StringArrayVarP(&assignFlag, "assign", "a", []string{}, "Assign one or more users to the issue. Multiple users can be assigned with multiple -a options.")
+	cmd.Flags().StringArrayVarP(&labelFlag, "label", "l", []string{}, "Add one or more labels to the issue. Multiple labels can be added with multiple -l options.")
+	cmd.Flags().StringVarP(&statusFlag, "status", "s", "open", "Set the initial issue status. Defaults to open.")
+	cmd.MarkFlagsMutuallyExclusive("message", "file")
 	return cmd
 }

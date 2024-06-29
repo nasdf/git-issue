@@ -19,7 +19,7 @@ const (
 )
 
 // CreateIssue returns a new issue with the author set to the current user.
-func CreateIssue(ctx context.Context) (*Issue, error) {
+func CreateIssue(ctx context.Context, status string, assignees []string, labels []string) (*Issue, error) {
 	authorName, err := git.Exec(ctx, nil, "config", "user.name")
 	if err != nil {
 		return nil, err
@@ -39,9 +39,11 @@ func CreateIssue(ctx context.Context) (*Issue, error) {
 		return nil, err
 	}
 	return &Issue{
-		Hash:   string(hash),
-		Author: author,
-		Status: IssueStatusOpen,
+		Hash:      string(hash),
+		Author:    author,
+		Status:    status,
+		Assignees: assignees,
+		Labels:    labels,
 	}, nil
 }
 

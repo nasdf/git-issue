@@ -27,7 +27,6 @@ func NewShowCommand() *cobra.Command {
 				}
 				pr, pw := io.Pipe()
 				go func() {
-					// write issues to the pipe
 					err := iter.ForEach(cmd.Context(), func(i *core.Issue) error {
 						_, err := fmt.Fprintln(pw, i.String())
 						return err
