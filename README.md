@@ -1,6 +1,6 @@
 # git-issue
 
-Git issue management. Read the (docs)[./docs/git-issue.md] for detailed usage info.
+Git issue management. Read the [docs](./docs/git-issue.md) for detailed usage info.
 
 ## Install from source
 
