@@ -2,14 +2,20 @@
 
 Git issue management. Read the [docs](./docs/git-issue.md) for detailed usage info.
 
-## Install from source
+## Install
 
 ```
 go install github.com/nasdf/git-issue@latest
 ```
 
-## Generate docs
+## Create an issue
 
 ```
-go run -tags docs .
+git issue create
+```
+
+## List all issues
+
+```
+git issue show
 ```
