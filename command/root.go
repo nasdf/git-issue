@@ -4,13 +4,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewRootCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "git-issue",
-		Short: "Create, edit, or list issues",
-		Long:  "",
-	}
-	cmd.AddCommand(NewCreateCommand())
-	cmd.AddCommand(NewShowCommand())
-	return cmd
+var rootCommand = &cobra.Command{
+	Use:   "git-issue",
+	Short: "Create, edit, or list issues",
+	Long:  "",
+}
+
+func init() {
+	rootCommand.AddCommand(createCommand)
+	rootCommand.AddCommand(showCommand)
+}
+
+func Execute() error {
+	return rootCommand.Execute()
 }
