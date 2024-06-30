@@ -10,15 +10,19 @@ import (
 )
 
 func NewShowCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "show [<issue>]",
+	var assignFlag []string
+	var labelFlag []string
+	var statusFlag []string
+	cmd := &cobra.Command{
+		Use:   "show [<issue>] | ([-s <status>] [-a <user>] [-l <label>])",
 		Short: "Show issue contents",
 		Long:  "",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			switch {
 			case len(args) == 0:
-				iter, err := core.ListIssues(cmd.Context())
+				filter := core.NewIssueFilter(assignFlag, labelFlag, statusFlag)
+				iter, err := core.ListIssues(cmd.Context(), filter)
 				if err != nil {
 					return err
 				}
@@ -52,4 +56,8 @@ func NewShowCommand() *cobra.Command {
 			}
 		},
 	}
+	cmd.Flags().StringArrayVarP(&assignFlag, "assignee", "a", []string{}, "Filter issues by assignee. Multiple assignees can be provided with multiple -a options.")
+	cmd.Flags().StringArrayVarP(&labelFlag, "label", "l", []string{}, "Filter issues by label. Multiple labels can be provided with multiple -l options.")
+	cmd.Flags().StringArrayVarP(&statusFlag, "status", "s", []string{}, "Filter issues by status. Multiple statuses can be provided with multiple -s options.")
+	return cmd
 }

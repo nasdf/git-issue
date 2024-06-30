@@ -99,33 +99,95 @@ func (i *Issue) String() string {
 	return fmt.Sprintf("%s\n\n    %s\n", strings.Join(headers, "\n"), oneline)
 }
 
+type IssueFilter struct {
+	assignees []string
+	labels    []string
+	status    []string
+}
+
+func NewIssueFilter(assignees []string, labels []string, status []string) *IssueFilter {
+	return &IssueFilter{
+		assignees: assignees,
+		labels:    labels,
+		status:    status,
+	}
+}
+
+func (i *IssueFilter) Match(issue *Issue) bool {
+	matchAssignee := len(i.assignees) == 0
+	for _, a := range i.assignees {
+		for _, b := range issue.Assignees {
+			matchAssignee = matchAssignee || a == b
+		}
+	}
+	matchLabel := len(i.labels) == 0
+	for _, a := range i.labels {
+		for _, b := range issue.Labels {
+			matchLabel = matchLabel || a == b
+		}
+	}
+	matchStatus := len(i.status) == 0
+	for _, a := range i.status {
+		matchLabel = matchLabel || a == issue.Status
+	}
+	return matchAssignee && matchLabel && matchStatus
+}
+
 type IssueIterator struct {
 	hashes []string
+	filter *IssueFilter
+	issue  *Issue
+}
+
+func NewIssueIterator(ctx context.Context, hashes []string, filter *IssueFilter) (*IssueIterator, error) {
+	iter := &IssueIterator{
+		hashes: hashes,
+		filter: filter,
+	}
+	if len(hashes) == 0 {
+		return iter, nil
+	}
+	if err := iter.Next(ctx); err != nil {
+		return nil, err
+	}
+	return iter, nil
+}
+
+func (i *IssueIterator) Value() *Issue {
+	return i.issue
 }
 
 func (i *IssueIterator) HasNext() bool {
-	return len(i.hashes) > 0
+	return i.issue != nil
 }
 
-func (i *IssueIterator) Next(ctx context.Context) (*Issue, error) {
-	if len(i.hashes) == 0 {
-		return nil, io.EOF
+func (i *IssueIterator) Next(ctx context.Context) error {
+	for {
+		if len(i.hashes) == 0 {
+			return io.EOF
+		}
+		issue, err := GetIssue(ctx, i.hashes[0])
+		if err != nil {
+			return err
+		}
+		i.hashes = i.hashes[1:]
+		i.issue = issue
+		if i.filter.Match(issue) {
+			return nil
+		}
 	}
-	issue, err := GetIssue(ctx, i.hashes[0])
-	if err != nil {
-		return nil, err
-	}
-	i.hashes = i.hashes[1:]
-	return issue, nil
 }
 
 func (i *IssueIterator) ForEach(ctx context.Context, fn func(*Issue) error) error {
 	for {
-		issue, err := i.Next(ctx)
+		err := i.Next(ctx)
+		if err == io.EOF {
+			return nil
+		}
 		if err != nil {
 			return err
 		}
-		if err := fn(issue); err != nil {
+		if err := fn(i.Value()); err != nil {
 			return err
 		}
 	}

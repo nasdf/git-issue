@@ -80,7 +80,7 @@ func EditIssueMessage(ctx context.Context, issue *Issue) ([]byte, error) {
 }
 
 // ListIssues returns a list containing all issues.
-func ListIssues(ctx context.Context) (*IssueIterator, error) {
+func ListIssues(ctx context.Context, filter *IssueFilter) (*IssueIterator, error) {
 	notes, err := git.Exec(ctx, nil, "notes", "--ref", issuesRef, "list")
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func ListIssues(ctx context.Context) (*IssueIterator, error) {
 		}
 		hashes = append(hashes, string(parts[1]))
 	}
-	return &IssueIterator{hashes}, nil
+	return NewIssueIterator(ctx, hashes, filter)
 }
 
 // GetIssue returns the issue anchored to the object with the given hash.
